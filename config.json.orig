@@ -1,1 +1,13 @@
-{"makefolder": "", "token":{"bearer": "", "consumer": {"token": "", "secret": ""}, "access": {"token": "", "secret": ""}}}
+{
+  "makefolder": "",
+  "token":{
+    "bearer": "",
+    "consumer": {
+      "token": "",
+      "secret": ""
+    },"access": {
+      "token": "",
+      "secret": ""
+    }
+  }
+}
