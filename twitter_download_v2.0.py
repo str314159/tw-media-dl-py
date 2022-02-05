@@ -80,12 +80,13 @@ def connect_to_endpoint(list,idlist,name, params):
 
         #responseからJSONを取得してループを回し、URLを追加していく
         json_response = response.json()
-        
-        for image in json_response['includes']['media']:
-            try:
-                download_file_to_dir(image['url'], folder)
-            except:
-                list.append(image['media_key'])
+      
+        if 'includes' in json_response:
+            for image in json_response['includes']['media']:
+                try:
+                    download_file_to_dir(image['url'], folder)
+                except:
+                    list.append(image['media_key'])
 
         print("mediakey:")
         print(list)
