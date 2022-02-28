@@ -1,2 +1,4 @@
 config.json
 #APIキーの格納庫
+errortest.py
+#エラー発生時の対応用プログラム

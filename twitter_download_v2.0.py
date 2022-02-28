@@ -3,6 +3,7 @@ import os
 import json
 import pprint
 import time
+import datetime
 import urllib.error
 import urllib.request
 import tweepy
@@ -54,13 +55,24 @@ def download_file_to_dir(url, dst_dir):
 
 def retrieve_video(id,dst_dir):
     api = create_api()
-    status = api.get_status(id, tweet_mode='extended')
-    if hasattr(status, 'extended_entities'):
-        for media in status.extended_entities.get('media', [{}]):
-            url = media['video_info']['variants'][0]['url']
-            p = urlparse(url)
-            link = p.scheme + "://" + p.netloc + p.path
-            download_file(url, os.path.join(dst_dir, os.path.basename(link)))   
+    try:
+        try:
+            status = api.get_status(id, tweet_mode='extended')
+        except tweepy.errors.TooManyRequests:
+            print("v1.1 too many requests")
+            dt_now = datetime.datetime.now
+            print(dt_now)
+            time.sleep(900)
+            status = api.get_status(id, tweet_mode='extended')
+        finally:
+            if hasattr(status, 'extended_entities'):
+                for media in status.extended_entities.get('media', [{}]):
+                    url = media['video_info']['variants'][0]['url']
+                    p = urlparse(url)
+                    link = p.scheme + "://" + p.netloc + p.path
+                    download_file_to_dir(link,dst_dir)               
+    except tweepy.errors as e:
+        print(e)
             
 #検索エンドポイントに接続してJSONを取得する関数
 def connect_to_endpoint(list,idlist,name, params):
@@ -70,7 +82,7 @@ def connect_to_endpoint(list,idlist,name, params):
     url = url_before + json_object["data"]["id"] + search_url
     folder = makefolder + name
     os.makedirs(folder, exist_ok=True)
-    for i in range(180):
+    while true:
         #APIを叩いて結果を取得
         response = requests.get(url, auth=bearer_oauth, params=params)
 
@@ -96,26 +108,26 @@ def connect_to_endpoint(list,idlist,name, params):
                 print(tweet['attachments']['media_keys'], tweet['id'])
             except:
                 pass
-            try:
+            else:
                 if tweet['attachments']['media_keys'][0] in list:
                     idlist.append(tweet['id'])
-            except:
-                pass
         print("tweetid:")    
         print(idlist)
 
         for id in idlist:
             print(id)
             retrieve_video(id,folder)
-       
-        try:
-            query_params['pagination_token'] = json_response['meta']['next_token']
-            if i == 180:
+
+        if hasattr(json_response['meta'],'next_token'):
+            try:
+                query_params['pagination_token'] = json_response['meta']['next_token']
                 print(json_response['meta']['next_token'])
-        except:
-            print("all download")
+            except:
+                print("nextpagetoken_error")
+                break
+        else:
+            print("all_download")
             break
-        
 
     
 #実行
